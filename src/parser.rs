@@ -37,6 +37,17 @@ impl Parser {
         }
     }
     
+    fn expect_statement_end(&mut self) -> Result<(), String> {
+        match self.current_token() {
+            Token::Newline => {
+                self.advance();
+                Ok(())
+            }
+            Token::Eof => Ok(()),
+            _ => Err(format!("Expected newline or end of file, found {:?}", self.current_token())),
+        }
+    }
+    
     pub fn parse(&mut self) -> Result<Vec<Statement>, String> {
         let mut statements = Vec::new();
         
@@ -69,7 +80,7 @@ impl Parser {
         
         self.expect(Token::Equal)?;
         let value = self.parse_expression()?;
-        self.expect(Token::Newline)?;
+        self.expect_statement_end()?;
         
         Ok(Statement::Assignment { name, value })
     }
@@ -79,7 +90,7 @@ impl Parser {
         self.expect(Token::LParen)?;
         let expr = self.parse_expression()?;
         self.expect(Token::RParen)?;
-        self.expect(Token::Newline)?;
+        self.expect_statement_end()?;
         
         Ok(Statement::Print(expr))
     }
