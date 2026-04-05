@@ -22,7 +22,7 @@ pub enum Token {
     LParen,
     RParen,
     Equal,
-    Semicolon,
+    Newline,
     
     // Special
     Eof,
@@ -61,9 +61,9 @@ impl Lexer {
         self.position += 1;
     }
     
-    fn skip_whitespace(&mut self) {
+    fn skip_spaces(&mut self) {
         while let Some(ch) = self.current_char() {
-            if ch.is_whitespace() {
+            if ch.is_whitespace() && ch != '\n' {
                 self.advance();
             } else {
                 break;
@@ -135,7 +135,7 @@ impl Lexer {
     }
     
     pub fn next_token(&mut self) -> Token {
-        self.skip_whitespace();
+        self.skip_spaces();
         
         match self.current_char() {
             None => Token::Eof,
@@ -169,9 +169,9 @@ impl Lexer {
                         self.advance();
                         Token::Equal
                     }
-                    ';' => {
+                    '\n' => {
                         self.advance();
-                        Token::Semicolon
+                        Token::Newline
                     }
                     '"' => Token::String(self.read_string()),
                     _ if ch.is_ascii_digit() => Token::Number(self.read_number()),

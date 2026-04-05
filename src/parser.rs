@@ -69,7 +69,7 @@ impl Parser {
         
         self.expect(Token::Equal)?;
         let value = self.parse_expression()?;
-        self.expect(Token::Semicolon)?;
+        self.expect(Token::Newline)?;
         
         Ok(Statement::Assignment { name, value })
     }
@@ -79,7 +79,7 @@ impl Parser {
         self.expect(Token::LParen)?;
         let expr = self.parse_expression()?;
         self.expect(Token::RParen)?;
-        self.expect(Token::Semicolon)?;
+        self.expect(Token::Newline)?;
         
         Ok(Statement::Print(expr))
     }

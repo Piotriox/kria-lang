@@ -11,6 +11,7 @@ A custom programming language written in Rust.
 - Arithmetic operations (+, -, *, /)
 - Print function
 - Null handling for undefined variables
+- Newline-based statement termination (no semicolons)
 
 ## Building
 
@@ -24,6 +25,16 @@ cargo build
 
 ```bash
 cargo run test.krx
+```
+
+Example `test.krx`:
+```kria
+set x = 5
+set x = 4
+set y = 3
+set text = "test"
+print(x+y)
+print(text)
 ```
 
 ## Installation
@@ -43,7 +54,7 @@ sudo ./dist/kria-setup.sh /usr/local
 
 After installation, use:
 ```bash
-kria run test.krx
+kria test.krx
 ```
 
 ## License
