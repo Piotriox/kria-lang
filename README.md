@@ -1,2 +1,2 @@
 # kria-lang
-.
+test
