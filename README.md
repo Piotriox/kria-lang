@@ -1,12 +1,16 @@
 # Kria Programming Language
 
-A custom programming language interpreter written in Rust.
+A custom programming language written in Rust.
 
 ## Features
 
 - File extension: `.krx`
 - Interpreted language
-- Modular architecture with lexer, parser, and interpreter
+- Dynamic + strong typing
+- Variable assignment with `set`
+- Arithmetic operations (+, -, *, /)
+- Print function
+- Null handling for undefined variables
 
 ## Building
 
@@ -19,17 +23,28 @@ cargo build
 ## Running
 
 ```bash
-cargo run
+cargo run test.krx
 ```
 
-## Project Structure
+## Installation
 
-- `src/main.rs` - Main executable entry point
-- `src/lib.rs` - Core library with module declarations
-- `src/lexer.rs` - Tokenization logic for .krx files
-- `src/parser.rs` - AST parsing implementation
-- `src/interpreter.rs` - Language execution engine
+### Windows (creates kria-setup.exe)
+```powershell
+# Requires NSIS: https://nsis.sourceforge.io/
+powershell scripts/build-windows.ps1
+# Run kria-setup.exe to install
+```
+
+### Linux/macOS (creates kria-setup.sh)
+```bash
+./scripts/build-linux.sh
+sudo ./dist/kria-setup.sh /usr/local
+```
+
+After installation, use:
+```bash
+kria run test.krx
+```
 
 ## License
-
 MIT
