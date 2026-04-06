@@ -1,5 +1,5 @@
 use crate::lexer::Token;
-use crate::ast::{Statement, Expression, Literal, BinaryOperator};
+use crate::ast::{Statement, Expression, Literal, BinaryOperator, UnaryOperator};
 
 pub struct Parser {
     tokens: Vec<Token>,
@@ -43,7 +43,7 @@ impl Parser {
                 self.advance();
                 Ok(())
             }
-            Token::Eof => Ok(()),
+            Token::Eof | Token::RBrace => Ok(()),
             _ => Err(format!("Expected newline or end of file, found {:?}", self.current_token())),
         }
     }
@@ -62,10 +62,65 @@ impl Parser {
         match self.current_token() {
             Token::Set => self.parse_assignment(),
             Token::Print => self.parse_print(),
+            Token::If => self.parse_if_statement(),
             _ => Err(format!("Unexpected token: {:?}", self.current_token())),
         }
     }
     
+    fn parse_if_statement(&mut self) -> Result<Statement, String> {
+        self.expect(Token::If)?;
+        let condition = self.parse_expression()?;
+        while self.current_token() == &Token::Newline {
+            self.advance();
+        }
+        let true_branch = self.parse_block()?;
+
+        let mut branches = vec![(condition, true_branch)];
+        let mut else_branch = None;
+
+        while let Token::ElseIf = self.current_token() {
+            self.advance();
+            let condition = self.parse_expression()?;
+            while self.current_token() == &Token::Newline {
+                self.advance();
+            }
+            let branch = self.parse_block()?;
+            branches.push((condition, branch));
+        }
+
+        if let Token::Else = self.current_token() {
+            self.advance();
+            while self.current_token() == &Token::Newline {
+                self.advance();
+            }
+            else_branch = Some(self.parse_block()?);
+        }
+
+        Ok(Statement::If {
+            branches,
+            else_branch,
+        })
+    }
+
+    fn parse_block(&mut self) -> Result<Vec<Statement>, String> {
+        self.expect(Token::LBrace)?;
+
+        let mut statements = Vec::new();
+        while self.current_token() != &Token::RBrace {
+            if self.current_token() == &Token::Newline {
+                self.advance();
+                continue;
+            }
+            statements.push(self.parse_statement()?);
+            if self.current_token() == &Token::Newline {
+                self.advance();
+            }
+        }
+
+        self.expect(Token::RBrace)?;
+        Ok(statements)
+    }
+
     fn parse_assignment(&mut self) -> Result<Statement, String> {
         self.expect(Token::Set)?;
         
@@ -96,9 +151,86 @@ impl Parser {
     }
     
     fn parse_expression(&mut self) -> Result<Expression, String> {
-        self.parse_additive()
+        self.parse_or()
     }
     
+    fn parse_or(&mut self) -> Result<Expression, String> {
+        let mut left = self.parse_and()?;
+
+        while let Token::Or = self.current_token() {
+            self.advance();
+            let right = self.parse_and()?;
+            left = Expression::BinaryOp {
+                left: Box::new(left),
+                op: BinaryOperator::Or,
+                right: Box::new(right),
+            };
+        }
+
+        Ok(left)
+    }
+
+    fn parse_and(&mut self) -> Result<Expression, String> {
+        let mut left = self.parse_equality()?;
+
+        while let Token::And = self.current_token() {
+            self.advance();
+            let right = self.parse_equality()?;
+            left = Expression::BinaryOp {
+                left: Box::new(left),
+                op: BinaryOperator::And,
+                right: Box::new(right),
+            };
+        }
+
+        Ok(left)
+    }
+
+    fn parse_equality(&mut self) -> Result<Expression, String> {
+        let mut left = self.parse_comparison()?;
+
+        while let Token::EqualEqual = self.current_token() {
+            self.advance();
+            let right = self.parse_comparison()?;
+            left = Expression::BinaryOp {
+                left: Box::new(left),
+                op: BinaryOperator::Equals,
+                right: Box::new(right),
+            };
+        }
+
+        Ok(left)
+    }
+
+    fn parse_comparison(&mut self) -> Result<Expression, String> {
+        let mut left = self.parse_additive()?;
+
+        loop {
+            let op = match self.current_token() {
+                Token::Greater => Some(BinaryOperator::GreaterThan),
+                Token::Less => Some(BinaryOperator::LessThan),
+                Token::GreaterEqual => Some(BinaryOperator::GreaterOrEqual),
+                Token::LessEqual => Some(BinaryOperator::LessOrEqual),
+                Token::NotEqual => Some(BinaryOperator::NotEquals),
+                _ => None,
+            };
+
+            if let Some(op) = op {
+                self.advance();
+                let right = self.parse_additive()?;
+                left = Expression::BinaryOp {
+                    left: Box::new(left),
+                    op,
+                    right: Box::new(right),
+                };
+                continue;
+            }
+            break;
+        }
+
+        Ok(left)
+    }
+
     fn parse_additive(&mut self) -> Result<Expression, String> {
         let mut left = self.parse_multiplicative()?;
         
@@ -130,7 +262,7 @@ impl Parser {
     }
     
     fn parse_multiplicative(&mut self) -> Result<Expression, String> {
-        let mut left = self.parse_primary()?;
+        let mut left = self.parse_unary()?;
         
         loop {
             match self.current_token() {
@@ -159,6 +291,20 @@ impl Parser {
         Ok(left)
     }
     
+    fn parse_unary(&mut self) -> Result<Expression, String> {
+        match self.current_token() {
+            Token::Not => {
+                self.advance();
+                let expr = self.parse_unary()?;
+                Ok(Expression::UnaryOp {
+                    op: UnaryOperator::Not,
+                    expr: Box::new(expr),
+                })
+            }
+            _ => self.parse_primary(),
+        }
+    }
+
     fn parse_primary(&mut self) -> Result<Expression, String> {
         match self.current_token() {
             Token::Number(n) => {

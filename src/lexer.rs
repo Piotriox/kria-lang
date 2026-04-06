@@ -2,6 +2,9 @@
 pub enum Token {
     // Keywords
     Set,
+    If,
+    Else,
+    ElseIf,
     True,
     False,
     Null,
@@ -17,11 +20,22 @@ pub enum Token {
     Minus,
     Star,
     Slash,
+    Equal,
+    EqualEqual,
+    NotEqual,
+    Greater,
+    Less,
+    GreaterEqual,
+    LessEqual,
+    And,
+    Or,
+    Not,
     
     // Delimiters
     LParen,
     RParen,
-    Equal,
+    LBrace,
+    RBrace,
     Newline,
     
     // Special
@@ -154,8 +168,20 @@ impl Lexer {
                         Token::Star
                     }
                     '/' => {
-                        self.advance();
-                        Token::Slash
+                        if self.peek_char() == Some('/') {
+                            self.advance();
+                            self.advance();
+                            while let Some(ch) = self.current_char() {
+                                if ch == '\n' {
+                                    break;
+                                }
+                                self.advance();
+                            }
+                            self.next_token()
+                        } else {
+                            self.advance();
+                            Token::Slash
+                        }
                     }
                     '(' => {
                         self.advance();
@@ -166,8 +192,50 @@ impl Lexer {
                         Token::RParen
                     }
                     '=' => {
+                        if self.peek_char() == Some('=') {
+                            self.advance();
+                            self.advance();
+                            Token::EqualEqual
+                        } else {
+                            self.advance();
+                            Token::Equal
+                        }
+                    }
+                    '!' => {
+                        if self.peek_char() == Some('=') {
+                            self.advance();
+                            self.advance();
+                            Token::NotEqual
+                        } else {
+                            self.advance();
+                            Token::Not
+                        }
+                    }
+                    '>' => {
                         self.advance();
-                        Token::Equal
+                        if self.peek_char() == Some('=') {
+                            self.advance();
+                            Token::GreaterEqual
+                        } else {
+                            Token::Greater
+                        }
+                    }
+                    '<' => {
+                        self.advance();
+                        if self.peek_char() == Some('=') {
+                            self.advance();
+                            Token::LessEqual
+                        } else {
+                            Token::Less
+                        }
+                    }
+                    '{' => {
+                        self.advance();
+                        Token::LBrace
+                    }
+                    '}' => {
+                        self.advance();
+                        Token::RBrace
                     }
                     '\n' => {
                         self.advance();
@@ -179,10 +247,16 @@ impl Lexer {
                         let ident = self.read_identifier();
                         match ident.as_str() {
                             "set" => Token::Set,
+                            "if" => Token::If,
+                            "else" => Token::Else,
+                            "elseif" => Token::ElseIf,
                             "true" => Token::True,
                             "false" => Token::False,
                             "null" => Token::Null,
                             "print" => Token::Print,
+                            "and" => Token::And,
+                            "or" => Token::Or,
+                            "not" => Token::Not,
                             _ => Token::Identifier(ident),
                         }
                     }

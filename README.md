@@ -9,6 +9,11 @@ A custom programming language written in Rust.
 - Dynamic + strong typing
 - Variable assignment with `set`
 - Arithmetic operations (+, -, *, /)
+- Comparison operators: `==`, `!=`, `>`, `<`, `>=`, `<=`
+- Logical operators: `and`, `or`, `not`
+- Conditional branches: `if`, `elseif`, `else`
+- Block scope with `{}`
+- Line comments using `//`
 - Print function
 - Null handling for undefined variables
 - Newline-based statement termination (no semicolons)
@@ -33,8 +38,38 @@ set x = 5
 set x = 4
 set y = 3
 set text = "test"
-print(x+y)
+print(x + y)
 print(text)
+
+set mynum = true
+if (mynum == true) {
+   print("Mynum is true")
+} elseif (mynum == false) {
+   print("Mynum is false")
+} else {
+   print("mynum must be a boolean")
+}
+
+set a = 5
+set b = 3
+
+if (a != b) {
+    print("a is not equal to b")
+}
+
+if (a >= b) {
+    print("a is greater than or equal to b")
+}
+
+if (b < a) {
+    print("b is less than a")
+}
+
+if (b <= a) {
+    print("b is less than or equal to a")
+}
+
+// Line comments start with // and continue to the end of the line.
 ```
 
 ## Installation

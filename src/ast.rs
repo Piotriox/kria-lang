@@ -7,6 +7,10 @@ pub enum Statement {
         value: Expression,
     },
     Print(Expression),
+    If {
+        branches: Vec<(Expression, Vec<Statement>)>,
+        else_branch: Option<Vec<Statement>>,
+    },
     Expression(Expression),
 }
 
@@ -14,6 +18,10 @@ pub enum Statement {
 pub enum Expression {
     Literal(Literal),
     Identifier(String),
+    UnaryOp {
+        op: UnaryOperator,
+        expr: Box<Expression>,
+    },
     BinaryOp {
         left: Box<Expression>,
         op: BinaryOperator,
@@ -23,6 +31,11 @@ pub enum Expression {
         name: String,
         args: Vec<Expression>,
     },
+}
+
+#[derive(Debug, Clone, Copy)]
+pub enum UnaryOperator {
+    Not,
 }
 
 #[derive(Debug, Clone)]
@@ -39,4 +52,12 @@ pub enum BinaryOperator {
     Subtract,
     Multiply,
     Divide,
+    Equals,
+    NotEquals,
+    GreaterThan,
+    LessThan,
+    GreaterOrEqual,
+    LessOrEqual,
+    And,
+    Or,
 }

@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use crate::ast::{Statement, Expression, Literal, BinaryOperator};
+use crate::ast::{Statement, Expression, Literal, BinaryOperator, UnaryOperator};
 
 #[derive(Debug, Clone)]
 pub enum Value {
@@ -50,6 +50,29 @@ impl Interpreter {
                 println!("{}", val);
                 Ok(())
             }
+            Statement::If { branches, else_branch } => {
+                for (condition, branch) in branches {
+                    let cond_value = self.evaluate_expression(condition)?;
+                    match cond_value {
+                        Value::Boolean(true) => {
+                            for stmt in branch {
+                                self.execute_statement(stmt)?;
+                            }
+                            return Ok(());
+                        }
+                        Value::Boolean(false) => continue,
+                        other => {
+                            return Err(format!("If condition must be boolean, found {:?}", other));
+                        }
+                    }
+                }
+                if let Some(branch) = else_branch {
+                    for stmt in branch {
+                        self.execute_statement(stmt)?;
+                    }
+                }
+                Ok(())
+            }
             Statement::Expression(expr) => {
                 self.evaluate_expression(expr)?;
                 Ok(())
@@ -62,6 +85,15 @@ impl Interpreter {
             Expression::Literal(lit) => self.evaluate_literal(lit),
             Expression::Identifier(name) => {
                 Ok(self.variables.get(&name).cloned().unwrap_or(Value::Null))
+            }
+            Expression::UnaryOp { op, expr } => {
+                let value = self.evaluate_expression(*expr)?;
+                match op {
+                    UnaryOperator::Not => match value {
+                        Value::Boolean(b) => Ok(Value::Boolean(!b)),
+                        other => Err(format!("not operation requires boolean, found {:?}", other)),
+                    },
+                }
             }
             Expression::BinaryOp { left, op, right } => {
                 let left_val = self.evaluate_expression(*left)?;
@@ -97,16 +129,41 @@ impl Interpreter {
                             Ok(Value::Number(l / r))
                         }
                     }
+                    BinaryOperator::Equals => Ok(Value::Boolean(l == r)),
+                    BinaryOperator::NotEquals => Ok(Value::Boolean(l != r)),
+                    BinaryOperator::GreaterThan => Ok(Value::Boolean(l > r)),
+                    BinaryOperator::LessThan => Ok(Value::Boolean(l < r)),
+                    BinaryOperator::GreaterOrEqual => Ok(Value::Boolean(l >= r)),
+                    BinaryOperator::LessOrEqual => Ok(Value::Boolean(l <= r)),
+                    _ => Err(format!("Operation {:?} not supported for numbers", op)),
                 }
             }
             (Value::String(l), Value::String(r)) => {
                 match op {
                     BinaryOperator::Add => Ok(Value::String(format!("{}{}", l, r))),
+                    BinaryOperator::Equals => Ok(Value::Boolean(l == r)),
                     _ => Err(format!("Operation {:?} not supported for strings", op)),
                 }
             }
+            (Value::Boolean(l), Value::Boolean(r)) => {
+                match op {
+                    BinaryOperator::Equals => Ok(Value::Boolean(l == r)),
+                    BinaryOperator::And => Ok(Value::Boolean(l && r)),
+                    BinaryOperator::Or => Ok(Value::Boolean(l || r)),
+                    _ => Err(format!("Operation {:?} not supported for booleans", op)),
+                }
+            }
+            (Value::Null, Value::Null) => {
+                match op {
+                    BinaryOperator::Equals => Ok(Value::Boolean(true)),
+                    _ => Err(format!("Operation {:?} not supported for null", op)),
+                }
+            }
             (l, r) => {
-                Err(format!("Type mismatch: cannot apply {:?} to {:?} and {:?}", op, l, r))
+                match op {
+                    BinaryOperator::Equals => Ok(Value::Boolean(false)),
+                    _ => Err(format!("Type mismatch: cannot apply {:?} to {:?} and {:?}", op, l, r)),
+                }
             }
         }
     }
