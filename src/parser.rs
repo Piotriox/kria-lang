@@ -52,6 +52,12 @@ impl Parser {
         let mut statements = Vec::new();
         
         while self.current_token() != &Token::Eof {
+            while self.current_token() == &Token::Newline {
+                self.advance();
+            }
+            if self.current_token() == &Token::Eof {
+                break;
+            }
             statements.push(self.parse_statement()?);
         }
         
