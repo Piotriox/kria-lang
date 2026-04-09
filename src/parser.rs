@@ -18,10 +18,6 @@ impl Parser {
         self.tokens.get(self.position).unwrap_or(&Token::Eof)
     }
     
-    fn peek_token(&self) -> &Token {
-        self.tokens.get(self.position + 1).unwrap_or(&Token::Eof)
-    }
-    
     fn advance(&mut self) {
         if self.position < self.tokens.len() {
             self.position += 1;

@@ -5,7 +5,7 @@ A custom programming language written in Rust.
 ## Features
 
 - File extension: `.krx`
-- Interpreted language
+- Bytecode VM-based execution
 - Dynamic + strong typing
 - Variable assignment with `set`
 - Arithmetic operations (+, -, *, /)
@@ -19,6 +19,15 @@ A custom programming language written in Rust.
 - Null handling for undefined variables
 - Newline-based statement termination (no semicolons)
 
+## Architecture
+
+Kria now compiles source into bytecode before execution using a simple stack-based VM.
+The runtime pipeline is:
+
+```text
+Source → Lexer → Parser → Compiler → Bytecode VM
+```
+
 ## Building
 
 Ensure you have Rust installed. Then:
@@ -30,7 +39,7 @@ cargo build
 ## Running
 
 ```bash
-cargo run test.krx
+cargo run -- test.krx
 ```
 
 Example `test.krx`:

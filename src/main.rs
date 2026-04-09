@@ -4,7 +4,8 @@ use std::process;
 
 use kria::lexer::Lexer;
 use kria::parser::Parser;
-use kria::interpreter::Interpreter;
+use kria::compiler::Compiler;
+use kria::vm::VM;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -39,9 +40,19 @@ fn main() {
         }
     };
     
-    // Interpreter: execute
-    let mut interpreter = Interpreter::new();
-    if let Err(e) = interpreter.execute(statements) {
+    // Compiler: generate bytecode from AST
+    let compiler = Compiler::new();
+    let bytecode = match compiler.compile(&statements) {
+        Ok(code) => code,
+        Err(e) => {
+            eprintln!("Compile error: {}", e);
+            process::exit(1);
+        }
+    };
+
+    // VM: execute bytecode
+    let mut vm = VM::new();
+    if let Err(e) = vm.execute(&bytecode) {
         eprintln!("Runtime error: {}", e);
         process::exit(1);
     }
