@@ -80,6 +80,10 @@ impl Parser {
             self.advance();
         }
         let true_branch = self.parse_block()?;
+        
+        while self.current_token() == &Token::Newline {
+            self.advance();
+        }
 
         let mut branches = vec![(condition, true_branch)];
         let mut else_branch = None;
@@ -91,6 +95,9 @@ impl Parser {
                 self.advance();
             }
             let branch = self.parse_block()?;
+            while self.current_token() == &Token::Newline {
+                self.advance();
+            }
             branches.push((condition, branch));
         }
 
@@ -138,6 +145,10 @@ impl Parser {
             }
             _ => return Err("Expected identifier after 'set'".to_string()),
         };
+        
+        while self.current_token() == &Token::Newline {
+            self.advance();
+        }
         
         self.expect(Token::Equal)?;
         let value = self.parse_expression()?;

@@ -202,18 +202,17 @@ impl Lexer {
                         }
                     }
                     '!' => {
-                        if self.peek_char() == Some('=') {
-                            self.advance();
+                        self.advance();
+                        if self.current_char() == Some('=') {
                             self.advance();
                             Token::NotEqual
                         } else {
-                            self.advance();
                             Token::Not
                         }
                     }
                     '>' => {
                         self.advance();
-                        if self.peek_char() == Some('=') {
+                        if self.current_char() == Some('=') {
                             self.advance();
                             Token::GreaterEqual
                         } else {
@@ -222,7 +221,7 @@ impl Lexer {
                     }
                     '<' => {
                         self.advance();
-                        if self.peek_char() == Some('=') {
+                        if self.current_char() == Some('=') {
                             self.advance();
                             Token::LessEqual
                         } else {
