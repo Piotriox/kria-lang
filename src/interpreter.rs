@@ -73,6 +73,23 @@ impl Interpreter {
                 }
                 Ok(())
             }
+            Statement::While { condition, body } => {
+                loop {
+                    let cond_value = self.evaluate_expression(condition.clone())?;
+                    match cond_value {
+                        Value::Boolean(true) => {
+                            for stmt in body.clone() {
+                                self.execute_statement(stmt)?;
+                            }
+                        }
+                        Value::Boolean(false) => break,
+                        other => {
+                            return Err(format!("While condition must be boolean, found {:?}", other));
+                        }
+                    }
+                }
+                Ok(())
+            }
             Statement::Expression(expr) => {
                 self.evaluate_expression(expr)?;
                 Ok(())

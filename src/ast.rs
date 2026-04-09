@@ -11,6 +11,10 @@ pub enum Statement {
         branches: Vec<(Expression, Vec<Statement>)>,
         else_branch: Option<Vec<Statement>>,
     },
+    While {
+        condition: Expression,
+        body: Vec<Statement>,
+    },
     Expression(Expression),
 }
 

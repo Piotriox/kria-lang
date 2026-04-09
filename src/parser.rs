@@ -69,10 +69,22 @@ impl Parser {
             Token::Set => self.parse_assignment(),
             Token::Print => self.parse_print(),
             Token::If => self.parse_if_statement(),
+            Token::While => self.parse_while_statement(),
             _ => Err(format!("Unexpected token: {:?}", self.current_token())),
         }
     }
     
+    fn parse_while_statement(&mut self) -> Result<Statement, String> {
+        self.expect(Token::While)?;
+        let condition = self.parse_expression()?;
+        while self.current_token() == &Token::Newline {
+            self.advance();
+        }
+        let body = self.parse_block()?;
+
+        Ok(Statement::While { condition, body })
+    }
+
     fn parse_if_statement(&mut self) -> Result<Statement, String> {
         self.expect(Token::If)?;
         let condition = self.parse_expression()?;

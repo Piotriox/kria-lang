@@ -12,6 +12,7 @@ A custom programming language written in Rust.
 - Comparison operators: `==`, `!=`, `>`, `<`, `>=`, `<=`
 - Logical operators: `and`, `or`, `not`
 - Conditional branches: `if`, `elseif`, `else`
+- Loops: `while`
 - Block scope with `{}`
 - Line comments using `//`
 - Print function
@@ -50,23 +51,10 @@ if (mynum == true) {
    print("mynum must be a boolean")
 }
 
-set a = 5
-set b = 3
-
-if (a != b) {
-    print("a is not equal to b")
-}
-
-if (a >= b) {
-    print("a is greater than or equal to b")
-}
-
-if (b < a) {
-    print("b is less than a")
-}
-
-if (b <= a) {
-    print("b is less than or equal to a")
+set counter = 0
+while (counter < 5) {
+    print(counter)
+    set counter = counter + 1
 }
 
 // Line comments start with // and continue to the end of the line.
